@@ -1,0 +1,48 @@
+## YAML Template.
+---
+spring:
+  application:
+    name: sepi_backend
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/sepi_db}
+    username: ${DATABASE_USERNAME:admin}
+    password: ${DATABASE_PASSWORD:admin}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+
+  # Desativar segurança temporariamente
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: "*"  # Expose all endpoints for development
+        base-path: /actuator
+      health:
+        show-details: always
+        probes:
+          enabled: true
+    endpoint:
+      health:
+        show-components: always
+      info:
+        enabled: true
+    security:
+      enabled: false  # Disable only for development!
+
+  spring:
+    security:
+      user:
+        name: admin
+        password: admin
