@@ -74,8 +74,9 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Segurança: JWT + OAuth2 -->
-<!--        <dependency>
+        <!--         Segurança: JWT + OAuth2 
+        -->                
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
@@ -95,7 +96,7 @@
             <artifactId>jjwt-jackson</artifactId>
             <version>0.11.5</version>
             <scope>runtime</scope>
-        </dependency>-->
+        </dependency>
     </dependencies>
 
     <build>
@@ -103,17 +104,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
                 <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </path>
-                        <path>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-configuration-processor</artifactId>
-                        </path>
-                    </annotationProcessorPaths>
+                    <release>${java.version}</release>
                 </configuration>
             </plugin>
             <plugin>
