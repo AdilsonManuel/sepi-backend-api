@@ -4,11 +4,14 @@
  */
 package com.sepi.sepi_backend.controller;
 
+import com.sepi.sepi_backend.dto.ForgotPasswordRequest;
 import com.sepi.sepi_backend.dto.JwtAuthenticationResponse;
 import com.sepi.sepi_backend.dto.LoginRequest;
+import com.sepi.sepi_backend.dto.ResetPasswordRequest;
 import com.sepi.sepi_backend.entity.Usuario;
 import com.sepi.sepi_backend.repository.UsuarioRepository;
 import com.sepi.sepi_backend.security.jwt.JwtTokenProvider;
+import com.sepi.sepi_backend.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -38,18 +41,12 @@ public class AuthController
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioService usuarioService; // Injetado para a lógica de reset
 
-    /**
-     * RF01: Endpoint de Login.POST /api/auth/login
-     *
-     * @param loginRequest
-     * @return
-     */
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser (@Valid @RequestBody LoginRequest loginRequest)
     {
 
-        // 1. Autenticar no Spring Security
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getEmail(),
@@ -57,17 +54,13 @@ public class AuthController
                 )
         );
 
-        // 2. Definir a autenticação no contexto de segurança
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // 3. Gerar o Token JWT
         String jwt = tokenProvider.generateToken(authentication);
 
-        // 4. Obter dados do usuário para a resposta
         Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado após autenticação."));
 
-        // 5. Retornar o token e dados do usuário
         return ResponseEntity.ok(new JwtAuthenticationResponse(
                 jwt,
                 usuario.getId(),
@@ -77,6 +70,28 @@ public class AuthController
         ));
     }
 
-    // NOTA: Em um ambiente real, seria necessário implementar a lógica de 
-    // "Esqueci Minha Senha" (geração de token de redefinição).
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword (@Valid @RequestBody ForgotPasswordRequest request)
+    {
+        String token = usuarioService.processarEsqueciSenha(request.getEmail());
+
+        // Em produção, a resposta seria genérica. Em dev, retornamos o token para facilitar.
+        String responseMessage = "Se o email estiver registado, um token de recuperação foi enviado. (Token: " + token + ")";
+
+        return ResponseEntity.ok(responseMessage);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword (@Valid @RequestBody ResetPasswordRequest request)
+    {
+        try
+        {
+            usuarioService.resetarSenha(request);
+            return ResponseEntity.ok("Senha redefinida com sucesso.");
+        }
+        catch (Exception e)
+        {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

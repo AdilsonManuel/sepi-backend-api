@@ -8,7 +8,6 @@ import com.sepi.sepi_backend.service.UsuarioService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,28 +21,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Controller para endpoints públicos relacionados a Usuários (ex: Cadastro).
- */
 @RestController
 @RequestMapping("/api/usuarios")
-@RequiredArgsConstructor
 public class UsuarioController
 {
 
     private final UsuarioService usuarioService;
 
-//	public UsuarioController(UsuarioService usuarioService)
-//	{
-//		this.usuarioService = usuarioService;
-//	}
-    /**
-     * RF01/RF02: Endpoint para registrar um novo usuário (Solicitante ou
-     * Emprestador). POST /api/usuarios/registrar
-     *
-     * @param request DTO com os dados do usuário.
-     * @return Resposta de sucesso com os dados do usuário.
-     */
+    public UsuarioController (UsuarioService usuarioService)
+    {
+        this.usuarioService = usuarioService;
+    }
+
     @PostMapping("/registrar")
     public ResponseEntity<UsuarioResponse> registrarUsuario (@Valid @RequestBody RegistroUsuarioRequest request)
     {
@@ -51,16 +40,6 @@ public class UsuarioController
         return new ResponseEntity<>(new UsuarioResponse(novoUsuario), HttpStatus.CREATED);
     }
 
-    // =========================================================================
-    // 2. CRUD Admin Básico / Gestão de Perfil
-    // =========================================================================
-    /**
-     * Obtém um usuário pelo ID.(Uso Perfil Próprio / Admin) GET
-     * /api/usuarios/{id}
-     *
-     * @param id
-     * @return
-     */
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioResponse> obterPorId (@PathVariable Long id)
     {
@@ -68,27 +47,13 @@ public class UsuarioController
         return ResponseEntity.ok(new UsuarioResponse(usuario));
     }
 
-    /**
-     * Atualiza os dados básicos do perfil (Nome, Email, Telefone,
-     * Localidade).(Uso Perfil Próprio) PUT /api/usuarios/{id}
-     *
-     * @param id
-     * @param request
-     * @return
-     */
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioResponse> atualizarPerfil (@PathVariable Long id, @Valid @RequestBody AtualizacaoUsuarioRequest request)
     {
-        Usuario usuarioAtualizado = usuarioService.atualizarPerfil(id, request);
+        Usuario usuarioAtualizado = usuarioService.actualizarPerfil(id, request);
         return ResponseEntity.ok(new UsuarioResponse(usuarioAtualizado));
     }
 
-    /**
-     * Desativa a conta do usuário (Remoção Lógica).DELETE /api/usuarios/{id}
-     *
-     * @param id
-     * @return
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<UsuarioResponse> desativarConta (@PathVariable Long id)
     {
@@ -96,14 +61,6 @@ public class UsuarioController
         return ResponseEntity.ok(new UsuarioResponse(usuarioDesativado));
     }
 
-    // =========================================================================
-    // 3. Métodos Admin / Monitorização
-    // =========================================================================
-    /**
-     * Lista todos os usuários.(Uso Admin) GET /api/usuarios
-     *
-     * @return
-     */
     @GetMapping
     public ResponseEntity<List<UsuarioResponse>> listarTodos ()
     {
@@ -113,14 +70,6 @@ public class UsuarioController
         return ResponseEntity.ok(responseList);
     }
 
-    /**
-     * RF20/RF03: Aprova/Recusa a verificação do documento.(Uso Admin) PATCH
-     * /api/usuarios/{id}/verificado
-     *
-     * @param id ID do usuário
-     * @param status true para aprovar, false para recursar.
-     * @return
-     */
     @PatchMapping("/{id}/verificado")
     public ResponseEntity<UsuarioResponse> atualizarStatusVerificacao (@PathVariable Long id, @RequestParam boolean status)
     {
@@ -128,17 +77,10 @@ public class UsuarioController
         return ResponseEntity.ok(new UsuarioResponse(usuarioAtualizado));
     }
 
-    /**
-     * Reativa a conta de um usuário (Uso Admin).PATCH
-     * /api/usuarios/{id}/reativar
-     *
-     * @param id
-     * @return
-     */
     @PatchMapping("/{id}/reativar")
     public ResponseEntity<UsuarioResponse> reativarConta (@PathVariable Long id)
     {
-        Usuario usuarioReativado = usuarioService.reativarConta(id);
+        Usuario usuarioReativado = usuarioService.reactivarConta(id);
         return ResponseEntity.ok(new UsuarioResponse(usuarioReativado));
     }
 }

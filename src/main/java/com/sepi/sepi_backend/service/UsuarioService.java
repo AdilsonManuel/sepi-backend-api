@@ -2,6 +2,7 @@ package com.sepi.sepi_backend.service;
 
 import com.sepi.sepi_backend.dto.AtualizacaoUsuarioRequest;
 import com.sepi.sepi_backend.dto.RegistroUsuarioRequest;
+import com.sepi.sepi_backend.dto.ResetPasswordRequest;
 import com.sepi.sepi_backend.entity.Emprestador;
 import com.sepi.sepi_backend.entity.Localidade;
 import com.sepi.sepi_backend.entity.Solicitante;
@@ -9,16 +10,16 @@ import com.sepi.sepi_backend.entity.Usuario;
 import com.sepi.sepi_backend.exception.RecursoNaoEncontradoException;
 import com.sepi.sepi_backend.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-/**
- * Serviço responsável pela lógica de negócio do Usuário (CRUD, Validações,
- * Registo).
- */
 @Service
 @RequiredArgsConstructor
 public class UsuarioService
@@ -28,21 +29,16 @@ public class UsuarioService
     private final LocalidadeService localidadeService;
     private final PasswordEncoder passwordEncoder;
 
-//	public UsuarioService(UsuarioRepository usuarioRepository, LocalidadeService localidadeService)
-//	{
-//		this.usuarioRepository = usuarioRepository;
-//		this.localidadeService = localidadeService;
-//	}
-    // Nota: Em um projeto real, injetaríamos um PasswordEncoder.
-    /**
-     * Processa o registro de um novo usuário (Solicitante ou Emprestador).
-     *
-     * @param request DTO com os dados do usuário.
-     * @return O objeto Usuario salvo.
-     */
     @Transactional
     public Usuario registrarNovoUsuario (RegistroUsuarioRequest request)
     {
+
+        int idade = Period.between(request.getDataNascimento(), LocalDate.now()).getYears();
+        if (idade < 18)
+        {
+            throw new IllegalArgumentException("O usuário deve ter 18 anos ou mais para se registrar.");
+        }
+
         if (usuarioRepository.existsByEmail(request.getEmail()))
         {
             throw new DataIntegrityViolationException("Email já cadastrado no sistema.");
@@ -51,8 +47,7 @@ public class UsuarioService
         Localidade localidade = localidadeService.findByPk(request.getPkLocalidade())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Localidade com PK " + request.getPkLocalidade() + " não encontrada."));
 
-        // Nota: A palavra-passe deve ser encriptada aqui (ex: BCryptPasswordEncoder.encode(request.getPalavraPasse())).
-        String palavraPasseCifrada = passwordEncoder.encode(request.getPalavraPasse()); // Simplificado para fins de modelagem
+        String palavraPasseCifrada = passwordEncoder.encode(request.getPalavraPasse());
 
         Usuario novoUsuario;
         if (null == request.getTipoUsuario())
@@ -72,7 +67,6 @@ public class UsuarioService
             }
         }
 
-        // Mapeamento dos campos base
         novoUsuario.setNomeCompleto(request.getNomeCompleto());
         novoUsuario.setEmail(request.getEmail());
         novoUsuario.setPalavraPasse(palavraPasseCifrada);
@@ -80,53 +74,35 @@ public class UsuarioService
         novoUsuario.setTipoUsuario(request.getTipoUsuario());
         novoUsuario.setLocalidade(localidade);
         novoUsuario.setNumeroDocumento(request.getNumeroDocumento());
-        novoUsuario.setVerificado(false); // RF03: A verificação de documentos será manual ou por IA.
+        novoUsuario.setDataNascimento(request.getDataNascimento());
+        novoUsuario.setVerificado(false);
+        novoUsuario.setAtivo(true);
+
+        novoUsuario.setTokenRecuperacaoSenha(null);
+        novoUsuario.setDataExpiracaoToken(null);
 
         return usuarioRepository.save(novoUsuario);
     }
 
-    // =========================================================================
-    // Métodos de CRUD Adicionais / Gestão de Perfil
-    // =========================================================================
-    /**
-     * Obtém um usuário pelo seu ID.
-     *
-     * @param id ID do usuário.
-     * @return Usuário encontrado.
-     */
     public Usuario obterPorId (Long id)
     {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado com ID: " + id));
     }
 
-    /**
-     * Lista todos os usuários. (Uso Admin)
-     *
-     * @return Lista de todos os usuários.
-     */
     public List<Usuario> listarTodos ()
     {
         return usuarioRepository.findAll();
     }
 
-    /**
-     * Atualiza os dados do perfil (nome, email, telefone, localidade).
-     *
-     * @param id ID do usuário a ser atualizado.
-     * @param request DTO com os novos dados.
-     * @return Usuário atualizado.
-     */
     @Transactional
-    public Usuario atualizarPerfil (Long id, AtualizacaoUsuarioRequest request)
+    public Usuario actualizarPerfil (Long id, AtualizacaoUsuarioRequest request)
     {
         Usuario usuario = obterPorId(id);
 
-        // 1. Atualiza dados básicos
         usuario.setNomeCompleto(request.getNomeCompleto());
         usuario.setTelefone(request.getTelefone());
 
-        // 2. Valida e atualiza Email (se alterado)
         if (!usuario.getEmail().equalsIgnoreCase(request.getEmail()))
         {
             if (usuarioRepository.existsByEmail(request.getEmail()))
@@ -136,7 +112,6 @@ public class UsuarioService
             usuario.setEmail(request.getEmail());
         }
 
-        // 3. Valida e atualiza Localidade
         Localidade novaLocalidade = localidadeService.findByPk(request.getPkLocalidade())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Nova Localidade com PK " + request.getPkLocalidade() + " não encontrada."));
         usuario.setLocalidade(novaLocalidade);
@@ -144,14 +119,6 @@ public class UsuarioService
         return usuarioRepository.save(usuario);
     }
 
-    /**
-     * Atualiza o status de verificação de um usuário (RF20). Simula a aprovação
-     * de documentos pelo Administrador/IA.
-     *
-     * @param id ID do usuário.
-     * @param status Novo status de verificação.
-     * @return Usuário atualizado.
-     */
     @Transactional
     public Usuario atualizarStatusVerificacao (Long id, boolean status)
     {
@@ -166,14 +133,6 @@ public class UsuarioService
         return usuarioRepository.save(usuario);
     }
 
-    /**
-     * Atualiza o status de atividade (ativo/inativo) de um usuário (Remoção
-     * Lógica). (Uso Admin)
-     *
-     * @param id ID do usuário.
-     * @param status Novo status (ativo=true/inativo=false).
-     * @return Usuário atualizado.
-     */
     @Transactional
     public Usuario desativarConta (Long id)
     {
@@ -182,18 +141,12 @@ public class UsuarioService
         {
             throw new IllegalArgumentException("A conta do usuário com ID " + id + " já está desativada.");
         }
-        usuario.setAtivo(false); // Remoção Lógica
+        usuario.setAtivo(false);
         return usuarioRepository.save(usuario);
     }
 
-    /**
-     * Reativa a conta de um usuário (Uso Admin).
-     *
-     * @param id ID do usuário.
-     * @return Usuário reativado.
-     */
     @Transactional
-    public Usuario reativarConta (Long id)
+    public Usuario reactivarConta (Long id)
     {
         Usuario usuario = obterPorId(id);
         if (usuario.isAtivo())
@@ -202,6 +155,44 @@ public class UsuarioService
         }
         usuario.setAtivo(true);
         return usuarioRepository.save(usuario);
+    }
+
+    @Transactional
+    public String processarEsqueciSenha (String email)
+    {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado com email: " + email));
+
+        String token = UUID.randomUUID().toString();
+
+        usuario.setTokenRecuperacaoSenha(token);
+        usuario.setDataExpiracaoToken(LocalDateTime.now().plusHours(1));
+        usuarioRepository.save(usuario);
+
+        return token;
+    }
+
+    @Transactional
+    public void resetarSenha (ResetPasswordRequest request)
+    {
+        Usuario usuario = usuarioRepository.findByTokenRecuperacaoSenha(request.getToken())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Token de recuperação inválido ou não encontrado."));
+
+        if (usuario.getDataExpiracaoToken().isBefore(LocalDateTime.now()))
+        {
+            usuario.setTokenRecuperacaoSenha(null);
+            usuario.setDataExpiracaoToken(null);
+            usuarioRepository.save(usuario);
+
+            throw new RuntimeException("Token de recuperação expirado.");
+        }
+
+        usuario.setPalavraPasse(passwordEncoder.encode(request.getNovaSenha()));
+
+        usuario.setTokenRecuperacaoSenha(null);
+        usuario.setDataExpiracaoToken(null);
+
+        usuarioRepository.save(usuario);
     }
 
 }
