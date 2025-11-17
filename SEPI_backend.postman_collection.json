@@ -1,0 +1,596 @@
+{
+	"info": {
+		"_postman_id": "97cf1a9b-f7c8-46ee-8e9d-8b0a43f05eb1",
+		"name": "SEPI_backend",
+		"description": "Coleção de testes da API de Usuários do SEPI Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "14833110"
+	},
+	"item": [
+		{
+			"name": "Usuários",
+			"item": [
+				{
+					"name": "Criar usuário (Solicitante)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"nomeCompleto\": \"Joana de Teste Perfil\",\n\"email\": \"valido@sepi.co.ao\",\n    \"palavraPasse\": \"senhaForte123\",\n    \"telefone\": \"922000111\",\n    \"tipoUsuario\": \"SOLICITANTE\",\n    \"dataNascimento\": \"2002-05-10\",\n    \"pkLocalidade\": \"MZ_MAP\",\n    \"numeroDocumento\": \"005554443LA047\"\n}"
+						},
+						"url": {
+							"raw": "localhost:8080/api/usuarios/registrar",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"usuarios",
+								"registrar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar todos os usuários",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/api/usuarios/",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"usuarios",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reativar Conta",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/usuarios/1/reativar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"usuarios",
+								"1",
+								"reativar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar usuário (Emprestador)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Carlos Neto\",\n  \"email\": \"carlos@investidor.com\",\n  \"senha\": \"abcdef\",\n  \"tipoUsuario\": \"EMPRESTADOR\",\n  \"documentoIdentificacao\": \"87654321LU\"\n}"
+						},
+						"url": {
+							"raw": "localhost:8080/api/usuarios",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar usuário por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/api/usuarios/1",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"usuarios",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Users",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Skawallet Admin\",\n    \"email\": \"skawallet52@gmail.com\",\n    \"phone\": \"949159962\",\n    \"password\": \"senha123\",\n    \"idDocument\": \"123456789LA045\",\n    \"type\": \"ADMIN\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://skawallet-backend-api.onrender.com/api/v1/users/1",
+							"protocol": "https",
+							"host": [
+								"skawallet-backend-api",
+								"onrender",
+								"com"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"1"
+							]
+						},
+						"description": "Endpoint para atualizar os dados do usuário.\n\n- **URL:** `PUT /api/v1/users/{id}`\n    \n- **Método:** PUT\n    \n- **Headers:**\n    \n    - `Authorization: Bearer {token}`\n        \n- **Descrição:** Permite ao usuário atualizar seu perfil, como nome e senha."
+					},
+					"response": []
+				},
+				{
+					"name": "Remover usuário por ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/api/usuarios/1",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"usuarios",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Dados do Perfil",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/usuarios/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"usuarios",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "verificado: Aprovar Documentos",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2YWxpZG9Ac2VwaS5jby5hbyIsInJvbGVzIjoiU09MSUNJVEFOVEUiLCJpYXQiOjE3NjMzNzgwNzYsImV4cCI6MTc2MzQ2NDQ3Nn0.gS899iW5Vhe8_tuX09kcVRztaNPCqh_R0GUQwYxemvQoV3mvith7-40djnOtcU1QoiabXXC9I-uZ1A_XKnYuUQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/usuarios/1/verificado?status=true",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"usuarios",
+								"1",
+								"verificado"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Perfil (Nome, Email, Telefone, Localidade)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nomeCompleto\": \"Joana Silva Perfil ATUALIZADO\",\n    \"email\": \"joana.nova.email@sepi.co.ao\",\n    \"telefone\": \"933111222\",\n    \"pkLocalidade\": \"PT_LS\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/usuarios/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"usuarios",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Localidade",
+			"item": [
+				{
+					"name": "Inserir Pais",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"pkLocalidade\": \"MZ\",\n    \"designacao\": \"Moçambique\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/localidades",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"localidades"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Inserir Provincia",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"pkLocalidade\": \"MZ_MAP\",\n    \"designacao\": \"Maputo (Província)\",\n    \"localidadePai\": {\n        \"pkLocalidade\": \"MZ\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/localidades",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"localidades"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Inserir Municipio",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\"pkLocalidade\": \"MZ_MAP_C\",\n    \"designacao\": \"Cidade de Maputo\",\n    \"localidadePai\": {\n        \"pkLocalidade\": \"MZ_MAP\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/localidades",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"localidades"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Filhas (Municípios)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/localidades/MZ/filhas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"localidades",
+								"MZ",
+								"filhas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Províncias",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/localidades/provincias",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"localidades",
+								"provincias"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Autenticação",
+			"item": [
+				{
+					"name": "Redefinição de Senha (Esqueci-me)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2YWxpZG9Ac2VwaS5jby5hbyIsInJvbGVzIjoiU09MSUNJVEFOVEUiLCJpYXQiOjE3NjMyNTI3MjcsImV4cCI6MTc2MzMzOTEyN30.3VRfAUwhZO_sX-jdrUSkUD31gcxmKIvMz4w22M7LAGNzl13ZJwUgRGZCdr72RXekAjc8_-rTL0uU8K-q5lbfmg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"valido@sepi.co.ao\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/forgot-password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Definir a Nova Senha (Reset)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"e4ce6420-5896-4cd9-805f-72a3956a9ee6\",\n    \"novaSenha\": \"novaSenhaSuperSegura456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/reset-password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"valido@sepi.co.ao\",\n    \"palavraPasse\": \"novaSenhaSuperSegura456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/auth/login",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Empréstimo",
+			"item": [
+				{
+					"name": "Solicitar Empréstimo",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2YWxpZG9Ac2VwaS5jby5hbyIsInJvbGVzIjoiU09MSUNJVEFOVEUiLCJpYXQiOjE3NjMzNzgwNzYsImV4cCI6MTc2MzQ2NDQ3Nn0.gS899iW5Vhe8_tuX09kcVRztaNPCqh_R0GUQwYxemvQoV3mvith7-40djnOtcU1QoiabXXC9I-uZ1A_XKnYuUQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"valorSolicitado\": 50000,\n    \"prazoPagamentoMeses\": 6,\n    \"motivo\": \"OBRAS_CASA\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/emprestimos/solicitar",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"emprestimos",
+								"solicitar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Meus Pedidos",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2YWxpZG9Ac2VwaS5jby5hbyIsInJvbGVzIjoiU09MSUNJVEFOVEUiLCJpYXQiOjE3NjMzNzgwNzYsImV4cCI6MTc2MzQ2NDQ3Nn0.gS899iW5Vhe8_tuX09kcVRztaNPCqh_R0GUQwYxemvQoV3mvith7-40djnOtcU1QoiabXXC9I-uZ1A_XKnYuUQ",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/emprestimos/meus-pedidos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"emprestimos",
+								"meus-pedidos"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
