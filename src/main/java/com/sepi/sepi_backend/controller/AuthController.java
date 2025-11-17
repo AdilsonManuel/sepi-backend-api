@@ -75,7 +75,7 @@ public class AuthController
     {
         String token = usuarioService.processarEsqueciSenha(request.getEmail());
 
-        // Em produção, a resposta seria genérica. Em dev, retornamos o token para facilitar.
+
         String responseMessage = "Se o email estiver registado, um token de recuperação foi enviado. (Token: " + token + ")";
 
         return ResponseEntity.ok(responseMessage);
