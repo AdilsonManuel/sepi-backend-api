@@ -9,7 +9,6 @@ import com.sepi.sepi_backend.entity.Solicitante;
 import com.sepi.sepi_backend.entity.Usuario;
 import com.sepi.sepi_backend.exception.RecursoNaoEncontradoException;
 import com.sepi.sepi_backend.repository.UsuarioRepository;
-import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -17,8 +16,10 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -193,6 +194,19 @@ public class UsuarioService
         usuario.setDataExpiracaoToken(null);
 
         usuarioRepository.save(usuario);
+    }
+
+    @Transactional(readOnly = true)
+    public Solicitante getSolicitanteAutenticado (String email)
+    {
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
+
+        if (!(usuario instanceof Solicitante))
+        {
+            throw new IllegalArgumentException("O usuário autenticado não é um Solicitante.");
+        }
+        return (Solicitante) usuario;
     }
 
 }

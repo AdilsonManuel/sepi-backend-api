@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -26,6 +27,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@EnableGlobalMethodSecurity(prePostEnabled = true) // ATIVA @PreAuthorize
 public class SecurityConfig
 {
 
@@ -44,20 +46,11 @@ public class SecurityConfig
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Configuração do filtro de segurança usando a sintaxe moderna (Lambda
-     * DSL).Corrige as depreciações de authorizeRequests(), antMatchers() e
-     * csrf().
-     *
-     * @param http
-     * @return
-     * @throws java.lang.Exception
-     */
     @Bean
     public SecurityFilterChain filterChain (HttpSecurity http) throws Exception
     {
         http
-                // 1. Desabilita CSRF (correção da depreciação)
+                // 1. Desabilita CSRF
                 .csrf(csrf -> csrf.disable())
                 // 2. Define a política de sessão como Stateless (uso de JWT)
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -67,8 +60,8 @@ public class SecurityConfig
                 .requestMatchers(HttpMethod.POST, "/api/usuarios/registrar").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/localidades/**").permitAll()
-                // Endpoints Admin (apenas para ADMINISTRADOR)
-                .requestMatchers("/api/usuarios/**").hasAuthority("ADMINISTRADOR")
+                // ANTERIORMENTE: .requestMatchers("/api/usuarios/**").hasAuthority("ADMINISTRADOR") -> REMOVIDO
+
                 // Todos os outros endpoints requerem autenticação
                 .anyRequest().authenticated()
                 );
