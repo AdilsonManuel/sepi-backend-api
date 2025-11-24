@@ -6,6 +6,8 @@ package com.sepi.sepi_backend.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -116,5 +118,113 @@ public class CalculoFinanceiro
             return 360;
         }
         throw new IllegalArgumentException("Valor excede o limite máximo permitido de 2.500.000 Kz");
+    }
+
+    public static BigDecimal determinarTetoFaixa (BigDecimal valorReferencia)
+    {
+        double v = valorReferencia.doubleValue();
+        if (v <= 100_000)
+        {
+            return new BigDecimal("100000");
+        }
+        if (v <= 300_000)
+        {
+            return new BigDecimal("300000");
+        }
+        if (v <= 600_000)
+        {
+            return new BigDecimal("600000");
+        }
+        if (v <= 1_200_000)
+        {
+            return new BigDecimal("1200000");
+        }
+        if (v <= 2_500_000)
+        {
+            return new BigDecimal("2500000");
+        }
+        return new BigDecimal("2500000");
+    }
+
+    /**
+     * Implementa a lógica de distribuição proporcional automática. Fonte:
+     * Modulo de investimentos.txt
+     *
+     * * @param valorInvestimento Valor total que o emprestador quer investir.
+     * @param pedidosMap Mapa contendo {ID_Emprestimo ->
+     * Valor_Que_Falta_Preencher}.
+     * @return Mapa com {ID_Emprestimo -> Valor_A_Distribuir}.
+     */
+    public static Map<Long, BigDecimal> calcularDistribuicaoProporcional (BigDecimal valorInvestimento, Map<Long, BigDecimal> pedidosMap)
+    {
+        Map<Long, BigDecimal> distribuicao = new HashMap<>();
+
+        // 1. Calcular o total necessário para preencher todos os pedidos
+        BigDecimal totalNecessario = pedidosMap.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Se não há necessidade (total 0), não distribui nada
+        if (totalNecessario.compareTo(BigDecimal.ZERO) == 0)
+        {
+            return distribuicao;
+        }
+
+        BigDecimal excedente = BigDecimal.ZERO;
+
+        // 2. Distribuição inicial proporcional
+        for (Map.Entry<Long, BigDecimal> entry : pedidosMap.entrySet())
+        {
+            Long emprestimoId = entry.getKey();
+            BigDecimal valorFaltaNoPedido = entry.getValue();
+
+            // Proporção = ValorFaltaNestePedido / TotalNecessarioGlobal
+            // Usamos 10 casas decimais para precisão intermédia, depois arredondamos o valor final
+            BigDecimal proporcao = valorFaltaNoPedido.divide(totalNecessario, 10, RoundingMode.HALF_UP);
+
+            // Valor Distribuído = Investimento * Proporção
+            BigDecimal valorDistribuido = valorInvestimento.multiply(proporcao).setScale(2, RoundingMode.HALF_UP);
+
+            // 3. Ajustar se ultrapassar o pedido (Excesso Local)
+            // Se o valor calculado for maior do que o pedido precisa
+            if (valorDistribuido.compareTo(valorFaltaNoPedido) > 0)
+            {
+                BigDecimal excessoLocal = valorDistribuido.subtract(valorFaltaNoPedido);
+                valorDistribuido = valorFaltaNoPedido; // Teto é o valor que falta
+                excedente = excedente.add(excessoLocal); // Guarda o resto para redistribuir
+            }
+
+            distribuicao.put(emprestimoId, valorDistribuido);
+        }
+
+        // 4. Redistribuir excedente (Se houver sobras de arredondamento ou tetos atingidos)
+        // Distribuímos o excedente pelos pedidos que ainda não encheram
+        if (excedente.compareTo(BigDecimal.ZERO) > 0)
+        {
+            for (Map.Entry<Long, BigDecimal> entry : pedidosMap.entrySet())
+            {
+                // Se já não há excedente, para
+                if (excedente.compareTo(BigDecimal.ZERO) <= 0)
+                {
+                    break;
+                }
+
+                Long id = entry.getKey();
+                BigDecimal valorJaAlocado = distribuicao.get(id);
+                BigDecimal teto = entry.getValue();
+
+                // Quanto ainda cabe neste pedido?
+                BigDecimal espacoLivre = teto.subtract(valorJaAlocado);
+
+                if (espacoLivre.compareTo(BigDecimal.ZERO) > 0)
+                {
+                    // Adiciona o que for menor: o excedente total ou o espaço livre neste pedido
+                    BigDecimal aAdicionar = excedente.min(espacoLivre);
+
+                    distribuicao.put(id, valorJaAlocado.add(aAdicionar));
+                    excedente = excedente.subtract(aAdicionar);
+                }
+            }
+        }
+
+        return distribuicao;
     }
 }

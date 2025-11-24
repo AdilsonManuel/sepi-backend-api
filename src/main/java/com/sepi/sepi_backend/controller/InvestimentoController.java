@@ -5,6 +5,7 @@
 package com.sepi.sepi_backend.controller;
 
 import com.sepi.sepi_backend.dto.DepositoRequest;
+import com.sepi.sepi_backend.dto.InvestimentoAutomaticoRequest;
 import com.sepi.sepi_backend.dto.InvestimentoResponse;
 import com.sepi.sepi_backend.dto.InvestirRequest;
 import com.sepi.sepi_backend.entity.Investimento;
@@ -97,5 +98,30 @@ public class InvestimentoController
         BigDecimal novoSaldo = investimentoService.realizarDeposito(email, request);
 
         return ResponseEntity.ok("Depósito realizado com sucesso. Novo saldo: " + novoSaldo + " Kz");
+    }
+
+    /**
+     * Endpoint para investimento automático (Distribuição Proporcional).POST
+     * /api/investimentos/investir-automatico
+     *
+     * @param request
+     * @param authentication
+     * @return
+     */
+    @PostMapping("/investir-automatico")
+    @PreAuthorize("hasAuthority('EMPRESTADOR')")
+    public ResponseEntity<String> realizarInvestimentoAutomatico (
+            @Valid @RequestBody InvestimentoAutomaticoRequest request,
+            Authentication authentication)
+    {
+
+        String email = authentication.getName();
+        List<Investimento> investimentos = investimentoService.realizarInvestimentoAutomatico(email, request);
+
+        BigDecimal totalAlocado = investimentos.stream()
+                .map(Investimento::getValorInvestido)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return ResponseEntity.ok("Sucesso! " + totalAlocado + " Kz distribuídos por " + investimentos.size() + " empréstimos.");
     }
 }
