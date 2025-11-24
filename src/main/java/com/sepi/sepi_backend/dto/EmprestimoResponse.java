@@ -23,7 +23,7 @@ public class EmprestimoResponse
     private Long solicitanteId;
     private String solicitanteNome;
     private BigDecimal valorSolicitado;
-    private Integer prazoPagamentoMeses;
+    private Integer prazoPagamentoDias;
     private MotivoEmprestimo motivo;
     private String descricaoMotivoOutro;
     private EstadoEmprestimo estado;
@@ -36,7 +36,7 @@ public class EmprestimoResponse
         this.solicitanteId = emprestimo.getSolicitante().getId();
         this.solicitanteNome = emprestimo.getSolicitante().getNomeCompleto();
         this.valorSolicitado = emprestimo.getValorSolicitado();
-        this.prazoPagamentoMeses = emprestimo.getPrazoPagamentoMeses();
+        this.prazoPagamentoDias = emprestimo.getPrazoPagamentoDias();
         this.motivo = emprestimo.getMotivo();
         this.descricaoMotivoOutro = emprestimo.getDescricaoMotivoOutro();
         this.estado = emprestimo.getEstado();

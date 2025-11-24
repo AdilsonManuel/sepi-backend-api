@@ -9,8 +9,11 @@ import com.sepi.sepi_backend.entity.Emprestimo;
 import com.sepi.sepi_backend.entity.Solicitante;
 import com.sepi.sepi_backend.enums.EstadoEmprestimo;
 import com.sepi.sepi_backend.enums.MotivoEmprestimo;
+import com.sepi.sepi_backend.enums.StatusUsuario;
 import com.sepi.sepi_backend.exception.RegraNegocioException;
 import com.sepi.sepi_backend.repository.EmprestimoRepository;
+import com.sepi.sepi_backend.util.CalculoFinanceiro;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -42,46 +45,72 @@ public class EmprestimoService
 
         Solicitante solicitante = usuarioService.getSolicitanteAutenticado(emailSolicitante);
 
-        validarSolicitante(solicitante);
+        // 1. Validações Prévias (Estado e Empréstimos Ativos)
+        validarElegibilidadeSolicitante(solicitante);
 
+        // 2. Validação de Limite de Crédito (CalculoLimiteEmprestimo.txt)
+        validarLimiteCredito(solicitante, request.getValorSolicitado());
+
+        // 3. Validação Motivo Outro
         if (request.getMotivo() == MotivoEmprestimo.OUTRO
                 && (request.getDescricaoMotivoOutro() == null || request.getDescricaoMotivoOutro().isBlank()))
         {
             throw new RegraNegocioException("A descrição é obrigatória quando o motivo for 'Outro'.");
         }
 
+        // 4. Cálculo Automático do Prazo (SobreModuloEmprestimos.txt)
+        int prazoDias = CalculoFinanceiro.determinarPrazoPorValor(request.getValorSolicitado());
+
+        // 5. Criação da Entidade
         Emprestimo emprestimo = Emprestimo.builder()
                 .solicitante(solicitante)
                 .valorSolicitado(request.getValorSolicitado())
-                .prazoPagamentoMeses(request.getPrazoPagamentoMeses())
+                .prazoPagamentoDias(prazoDias)
                 .motivo(request.getMotivo())
                 .descricaoMotivoOutro(request.getDescricaoMotivoOutro())
-                .estado(EstadoEmprestimo.PENDENTE_APROVACAO)
+                .estado(EstadoEmprestimo.AGUARDANDO_APROVACAO) // Estado inicial
+                // Definição de taxas fixas no contrato (FormulasDosJuros&Comissoes.txt)
+                .taxaJuroAplicada(CalculoFinanceiro.TAXA_JURO_EMPRESTIMO)
+                .comissaoPlataforma(CalculoFinanceiro.TAXA_COMISSAO_TOTAL)
+                .valorJurosMoraDia(CalculoFinanceiro.TAXA_JURO_MORA_DIA)
                 .build();
+
+        // 6. Aprovação Automática (SobreModuloEmprestimos.txt - Passo 4)
+        // Como já validamos limite, estado e dados, podemos aprovar automaticamente para financiamento.
+        emprestimo.setEstado(EstadoEmprestimo.EM_FINANCIAMENTO);
 
         return emprestimoRepository.save(emprestimo);
     }
 
-    /**
-     * Valida se o solicitante está apto a pedir um novo empréstimo.
-     */
-    private void validarSolicitante (Solicitante solicitante)
+    private void validarElegibilidadeSolicitante (Solicitante solicitante)
     {
-        if (!solicitante.isVerificado())
+        if (solicitante.getStatusVerificacao() != StatusUsuario.AVALIADO)
         {
-            throw new RegraNegocioException("Sua conta ainda não foi verificada. Por favor, aguarde a aprovação dos documentos.");
+            throw new RegraNegocioException("O usuário precisa estar 'VERIFICADO' e 'AVALIADO' (Risco calculado) antes de pedir empréstimo.");
         }
 
-        List<EstadoEmprestimo> estadosBloqueados = Arrays.asList(
+        List<EstadoEmprestimo> estadosAtivos = Arrays.asList(
+                EstadoEmprestimo.EM_FINANCIAMENTO,
+                EstadoEmprestimo.FINANCIADO,
                 EstadoEmprestimo.EM_PAGAMENTO,
-                EstadoEmprestimo.ATRASADO
+                EstadoEmprestimo.EM_ATRASO
         );
 
-        boolean temEmprestimoAtivoOuAtrasado = emprestimoRepository.existsBySolicitanteIdAndEstadoIn(solicitante.getId(), estadosBloqueados);
+        boolean temEmprestimoAtivo = emprestimoRepository.existsBySolicitanteIdAndEstadoIn(solicitante.getId(), estadosAtivos);
 
-        if (temEmprestimoAtivoOuAtrasado)
+        if (temEmprestimoAtivo)
         {
-            throw new RegraNegocioException("Não pode solicitar um novo empréstimo enquanto tiver um empréstimo ativo ou em atraso.");
+            throw new RegraNegocioException("Solicitante já possui um empréstimo ativo ou em processo.");
+        }
+    }
+
+    private void validarLimiteCredito (Solicitante solicitante, BigDecimal valorSolicitado)
+    {
+        // O limiteCreditoAprovado no Solicitante já deve ter sido calculado previamente (Na fase de Análise de Risco/IA)
+        // usando a fórmula: Teto da faixa * Fator do risco
+        if (solicitante.getLimiteCreditoAprovado() == null || valorSolicitado.compareTo(solicitante.getLimiteCreditoAprovado()) > 0)
+        {
+            throw new RegraNegocioException("O valor solicitado excede o seu limite permitido de " + solicitante.getLimiteCreditoAprovado() + " Kz.");
         }
     }
 

@@ -1,5 +1,6 @@
 package com.sepi.sepi_backend.dto;
 
+import com.sepi.sepi_backend.enums.TipoDocumento;
 import com.sepi.sepi_backend.enums.TipoUsuario;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -33,7 +34,10 @@ public class RegistroUsuarioRequest
     @NotBlank(message = "O código da localidade é obrigatório.")
     private String pkLocalidade;
 
-    @NotBlank(message = "O número do documento (BI/Passaporte) é obrigatório.")
+    @NotNull(message = "O tipo de documento de identificação é obrigatório.")
+    private TipoDocumento tipoIdentificacao; // Certifique-se que o nome bate com o Enum usado na Entidade
+
+    @NotBlank(message = "O número do documento é obrigatório.")
     private String numeroDocumento;
 
     @NotNull(message = "A data de nascimento é obrigatória.")

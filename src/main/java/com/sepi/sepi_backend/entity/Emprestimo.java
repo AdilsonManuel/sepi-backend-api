@@ -50,7 +50,7 @@ public class Emprestimo
     private BigDecimal valorSolicitado;
 
     @Column(nullable = false)
-    private Integer prazoPagamentoMeses;
+    private Integer prazoPagamentoDias; // Alterado de Meses para Dias conforme tabela
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -69,5 +69,14 @@ public class Emprestimo
     private BigDecimal limiteAprovado;
     private LocalDateTime dataAprovacao;
     private String notasAnaliseRisco;
+
+    @Column(nullable = false)
+    private BigDecimal taxaJuroAplicada; // 10%
+
+    @Column(nullable = false)
+    private BigDecimal comissaoPlataforma; // 5%
+
+    @Column(nullable = false)
+    private BigDecimal valorJurosMoraDia; // 0.02%
 
 }

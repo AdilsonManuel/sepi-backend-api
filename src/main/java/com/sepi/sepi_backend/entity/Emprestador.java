@@ -1,10 +1,10 @@
 package com.sepi.sepi_backend.entity;
 
-import com.sepi.sepi_backend.enums.TipoUsuario;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -18,12 +18,10 @@ import lombok.NoArgsConstructor;
 public class Emprestador extends Usuario
 {
 
-    private Double saldo = 0.0; // Saldo disponível para empréstimos (RF23/RF24)
+    private BigDecimal saldo = BigDecimal.ZERO;
 
-    public Emprestador (String nomeCompleto, String email, String palavraPasse, String telefone, TipoUsuario tipoUsuario, Localidade localidade, String numeroDocumento, LocalDate dataNascimento)
-    {
-        super(nomeCompleto, email, palavraPasse, telefone, tipoUsuario, localidade, numeroDocumento, dataNascimento);
-    }
-
-    // Poderia ter mais atributos específicos como preferência de risco, etc.
+    // Novos campos conforme "Nota importante.txt"
+    private boolean contratoAceite = false;
+    private LocalDateTime dataAceiteContrato;
+    private String versaoContratoAceite;
 }

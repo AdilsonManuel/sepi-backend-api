@@ -1,6 +1,7 @@
 package com.sepi.sepi_backend.controller;
 
 import com.sepi.sepi_backend.dto.AtualizacaoUsuarioRequest;
+import com.sepi.sepi_backend.dto.AvaliacaoRiscoRequest;
 import com.sepi.sepi_backend.dto.RegistroUsuarioRequest;
 import com.sepi.sepi_backend.dto.UsuarioResponse;
 import com.sepi.sepi_backend.entity.Usuario;
@@ -82,5 +83,13 @@ public class UsuarioController
     {
         Usuario usuarioReativado = usuarioService.reactivarConta(id);
         return ResponseEntity.ok(new UsuarioResponse(usuarioReativado));
+    }
+
+    @PatchMapping("/{id}/avaliar-risco")
+    // @PreAuthorize("hasAuthority('ADMINISTRADOR')") // Descomente em produção
+    public ResponseEntity<UsuarioResponse> avaliarRiscoUsuario (@PathVariable Long id, @Valid @RequestBody AvaliacaoRiscoRequest request)
+    {
+        Usuario usuarioAvaliado = usuarioService.avaliarRiscoSolicitante(id, request.getNivelRisco(), request.getLimiteAprovado());
+        return ResponseEntity.ok(new UsuarioResponse(usuarioAvaliado));
     }
 }

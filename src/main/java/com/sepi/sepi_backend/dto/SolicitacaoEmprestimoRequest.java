@@ -5,7 +5,6 @@
 package com.sepi.sepi_backend.dto;
 
 import com.sepi.sepi_backend.enums.MotivoEmprestimo;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
@@ -22,10 +21,6 @@ public class SolicitacaoEmprestimoRequest
     @NotNull(message = "O valor solicitado é obrigatório.")
     @Positive(message = "O valor solicitado deve ser positivo.")
     private BigDecimal valorSolicitado;
-
-    @NotNull(message = "O prazo é obrigatório.")
-    @Min(value = 1, message = "O prazo mínimo é de 1 mês.")
-    private Integer prazoPagamentoMeses;
 
     @NotNull(message = "O motivo é obrigatório.")
     private MotivoEmprestimo motivo;

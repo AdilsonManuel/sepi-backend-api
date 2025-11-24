@@ -7,7 +7,10 @@ import com.sepi.sepi_backend.entity.Emprestador;
 import com.sepi.sepi_backend.entity.Localidade;
 import com.sepi.sepi_backend.entity.Solicitante;
 import com.sepi.sepi_backend.entity.Usuario;
+import com.sepi.sepi_backend.enums.NivelRisco;
+import com.sepi.sepi_backend.enums.StatusUsuario;
 import com.sepi.sepi_backend.exception.RecursoNaoEncontradoException;
+import com.sepi.sepi_backend.exception.RegraNegocioException;
 import com.sepi.sepi_backend.repository.UsuarioRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -75,8 +78,8 @@ public class UsuarioService
         novoUsuario.setTipoUsuario(request.getTipoUsuario());
         novoUsuario.setLocalidade(localidade);
         novoUsuario.setNumeroDocumento(request.getNumeroDocumento());
+        novoUsuario.setTipoDocumento(request.getTipoIdentificacao()); // Preenche a coluna que estava NULL
         novoUsuario.setDataNascimento(request.getDataNascimento());
-        novoUsuario.setVerificado(false);
         novoUsuario.setAtivo(true);
 
         novoUsuario.setTokenRecuperacaoSenha(null);
@@ -120,17 +123,32 @@ public class UsuarioService
         return usuarioRepository.save(usuario);
     }
 
+    /**
+     * Atualiza o status de verificação de um usuário (RF20). Simula a aprovação
+     * de documentos pelo Administrador/IA.
+     *
+     * * @param id ID do usuário.
+     * @param aprovado true para aprovar (muda para VERIFICADO), false para
+     * reprovar/resetar.
+     * @return Usuário atualizado.
+     */
     @Transactional
-    public Usuario atualizarStatusVerificacao (Long id, boolean status)
+    public Usuario atualizarStatusVerificacao (Long id, boolean aprovado)
     {
         Usuario usuario = obterPorId(id);
 
-        if (usuario.isVerificado() == status)
+        StatusUsuario novoStatus = aprovado ? StatusUsuario.VERIFICADO : StatusUsuario.NAO_VERIFICADO;
+
+        if (usuario.getStatusVerificacao() == novoStatus)
         {
-            throw new IllegalArgumentException("O status de verificação já é " + (status ? "VERIFICADO" : "NÃO VERIFICADO"));
+            throw new IllegalArgumentException("O status de verificação já é " + novoStatus);
         }
 
-        usuario.setVerificado(status);
+        if (!aprovado && usuario.getStatusVerificacao() == StatusUsuario.AVALIADO)
+        {
+        }
+
+        usuario.setStatusVerificacao(novoStatus);
         return usuarioRepository.save(usuario);
     }
 
@@ -207,6 +225,42 @@ public class UsuarioService
             throw new IllegalArgumentException("O usuário autenticado não é um Solicitante.");
         }
         return (Solicitante) usuario;
+    }
+
+    /**
+     * Define o nível de risco e o limite de crédito de um Solicitante.Executado
+     * pela IA ou Administrador.Transita o estado de VERIFICADO para AVALIADO.
+     *
+     * @param id
+     * @param nivelRisco
+     * @param limiteAprovado
+     * @return
+     */
+    @Transactional
+    public Usuario avaliarRiscoSolicitante (Long id, NivelRisco nivelRisco, java.math.BigDecimal limiteAprovado)
+    {
+        Usuario usuario = obterPorId(id);
+
+        if (!(usuario instanceof Solicitante))
+        {
+            throw new IllegalArgumentException("Apenas Solicitantes podem ser avaliados quanto ao risco.");
+        }
+
+        // Regra: Só pode avaliar se já estiver VERIFICADO (Documentos OK)
+        // Opcional: Se quiser permitir re-avaliação, remova a checagem estrita ou adapte.
+        if (usuario.getStatusVerificacao() == StatusUsuario.NAO_VERIFICADO)
+        {
+            throw new RegraNegocioException("O usuário precisa ter os documentos verificados antes da análise de risco.");
+        }
+
+        Solicitante solicitante = (Solicitante) usuario;
+        solicitante.setNivelRisco(nivelRisco);
+        solicitante.setLimiteCreditoAprovado(limiteAprovado);
+
+        // Atualiza o status global
+        solicitante.setStatusVerificacao(StatusUsuario.AVALIADO);
+
+        return usuarioRepository.save(solicitante);
     }
 
 }

@@ -1,10 +1,12 @@
 package com.sepi.sepi_backend.entity;
 
-import com.sepi.sepi_backend.enums.TipoUsuario;
+import com.sepi.sepi_backend.enums.NivelRisco;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -15,16 +17,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-
 public class Solicitante extends Usuario
 {
 
-    private Double limiteCredito = 0.0; // Definido pela IA/Administrador
-    private Double indicadorConfianca = 0.0; // Baseado em feedback/histórico (RF19)
-    private String motivoEmprestimo; // RF22
+    // Definido pela IA ou Admin na fase de "AVALIADO"
+    @Enumerated(EnumType.STRING)
+    private NivelRisco nivelRisco;
 
-    public Solicitante (String nomeCompleto, String email, String palavraPasse, String telefone, TipoUsuario tipoUsuario, Localidade localidade, String numeroDocumento, LocalDate dataNascimento)
-    {
-        super(nomeCompleto, email, palavraPasse, telefone, tipoUsuario, localidade, numeroDocumento, dataNascimento);
-    }
+    private BigDecimal limiteCreditoAprovado = BigDecimal.ZERO;
+    private Double indicadorConfianca = 0.0; // Score 0-5
+    private String motivoEmprestimo;
 }

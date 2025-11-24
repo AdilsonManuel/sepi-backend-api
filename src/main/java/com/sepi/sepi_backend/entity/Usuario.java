@@ -4,6 +4,8 @@
  */
 package com.sepi.sepi_backend.entity;
 
+import com.sepi.sepi_backend.enums.StatusUsuario;
+import com.sepi.sepi_backend.enums.TipoDocumento;
 import com.sepi.sepi_backend.enums.TipoUsuario;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -56,11 +58,14 @@ public class Usuario
 
     @ManyToOne
     @JoinColumn(name = "fk_localidade", nullable = false)
-    private Localidade localidade; // Onde o usuário reside (Município ou Comuna)
+    private Localidade localidade;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private TipoDocumento tipoDocumento;
 
     // Atributos de verificação e status
-    private String numeroDocumento; // BI, Passaporte, etc.
-    private boolean verificado = false;
+    private String numeroDocumento;
     private boolean ativo = true;
 
     @Column(name = "token_recuperacao_senha")
@@ -68,6 +73,10 @@ public class Usuario
 
     @Column(name = "data_expiracao_token")
     private LocalDateTime dataExpiracaoToken;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusUsuario statusVerificacao = StatusUsuario.NAO_VERIFICADO;
 
     // Construtor para registro (sem ID) - Atualizado
     public Usuario (String nomeCompleto, String email, String palavraPasse, String telefone, TipoUsuario tipoUsuario, Localidade localidade, String numeroDocumento, LocalDate dataNascimento)
