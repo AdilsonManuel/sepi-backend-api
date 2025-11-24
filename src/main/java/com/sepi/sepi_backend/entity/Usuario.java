@@ -64,7 +64,6 @@ public class Usuario
     @Column(nullable = false, length = 50)
     private TipoDocumento tipoDocumento;
 
-    // Atributos de verificação e status
     private String numeroDocumento;
     private boolean ativo = true;
 
@@ -78,7 +77,7 @@ public class Usuario
     @Column(nullable = false)
     private StatusUsuario statusVerificacao = StatusUsuario.NAO_VERIFICADO;
 
-    // Construtor para registro (sem ID) - Atualizado
+    // Construtor para registro (sem ID) - Actualizado
     public Usuario (String nomeCompleto, String email, String palavraPasse, String telefone, TipoUsuario tipoUsuario, Localidade localidade, String numeroDocumento, LocalDate dataNascimento)
     {
         this.nomeCompleto = nomeCompleto;

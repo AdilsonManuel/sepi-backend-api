@@ -263,4 +263,14 @@ public class UsuarioService
         return usuarioRepository.save(solicitante);
     }
 
+    /**
+     * Obtém um usuário pelo email. Necessário para o InvestimentoService e
+     * EmprestimoService.
+     */
+    public Usuario obterPorEmail (String email)
+    {
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado com Email: " + email));
+    }
+
 }
